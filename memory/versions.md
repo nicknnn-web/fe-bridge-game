@@ -36,6 +36,13 @@
 - `auyologic-final/frontend/geo-detection.html` - 步骤调整和数据同步修复
 - `auyologic-final/frontend/enterprise-settings.html` - 问题库管理（未修改）
 
+### Git 提交记录
+- **外层仓库**: `69d477a` Initial commit: project setup with git repository
+- **前端仓库**: `8a48189` refactor: 重构品牌拓词和可见度检测页面
+
+### 当前状态
+✅ 所有修改已提交到 Git，工作区干净
+
 ### 已知问题
 - 无
 
