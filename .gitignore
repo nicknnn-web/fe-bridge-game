@@ -38,4 +38,4 @@ build/
 # 备份文件
 backup/
 archived/
-auyologic-final/
+# auyologic-final/  # 前端代码纳入版本控制

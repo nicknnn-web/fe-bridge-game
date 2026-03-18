@@ -203,10 +203,22 @@ const init = async () => {
       tags TEXT,
       slogan TEXT,
       industry TEXT,
+      status TEXT DEFAULT 'active',
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  // 为已存在的 brands 表添加 status 字段（如果不存在）
+  try {
+    await run(`ALTER TABLE brands ADD COLUMN status TEXT DEFAULT 'active'`);
+    console.log('[DB] 已添加 status 字段到 brands 表');
+  } catch (err) {
+    // 字段已存在，忽略错误
+    if (!err.message.includes('duplicate column')) {
+      console.log('[DB] brands 表 status 字段检查:', err.message);
+    }
+  }
 
   // Platforms table
   await run(`
