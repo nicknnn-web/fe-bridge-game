@@ -49,3 +49,45 @@
 ### 下一步建议
 - 测试完整的业务流程：拓词 → 同步 → 检测
 - 考虑添加数据迁移脚本（旧版数据 → 新版格式）
+
+## 2026-03-18 - AI标签/关键词页与品牌拓词页统一存储
+
+### 已完成的工作
+
+#### 1. 统一存储格式
+- AI标签/关键词页 (enterprise-settings.html) 现在使用 `exp_brand_keywords_v2` 存储键
+- 与品牌拓词页使用相同的数据格式
+
+#### 2. 双向同步实现
+- **loadKeywords()**: 从 `exp_brand_keywords_v2` 读取数据，提取 text 字段转换为简单数组
+- **syncToBrandKeywords()**: 将简单数组转换回对象格式保存，保留原有对象的扩展字段
+- **extractKeywords()**: 辅助函数，支持从对象或字符串格式提取关键词
+
+#### 3. 自动保存机制
+- 添加关键词时自动调用 `syncToBrandKeywords()`
+- 删除关键词时自动调用 `syncToBrandKeywords()`
+- 添加推荐关键词时自动调用 `syncToBrandKeywords()`
+
+#### 4. 按钮更新
+- "添加到拓词关键词库" 按钮改为 "🔄 强制同步到拓词"
+- 按钮样式改为 btn-secondary，添加 title 提示已自动同步
+
+### 技术实现
+```javascript
+// 数据转换逻辑
+// 加载：exp_brand_keywords_v2 (对象数组) → keywordsData (字符串数组)
+// 保存：keywordsData (字符串数组) → exp_brand_keywords_v2 (对象数组)
+```
+
+### 文件修改列表
+- `auyologic-final/frontend/enterprise-settings.html` - 关键词管理逻辑重构
+
+### Git 提交记录
+- 待提交
+
+### 当前状态
+✅ 代码修改完成，待测试和提交
+
+### 下一步建议
+- 测试双向同步：在品牌拓词页添加关键词，检查AI标签页是否同步
+- 测试自动保存：在AI标签页添加/删除关键词，检查品牌拓词页是否更新
