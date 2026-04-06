@@ -858,7 +858,6 @@ const game={
   checkAllDone(){
     const alive=this.units.filter(u=>u.isPlayer&&!u.dead);
     document.getElementById('endTurnBtn').disabled=!alive.every(u=>u.done);
-    if(alive.length>0&&alive.every(u=>u.done)&&this.phase==='player'){this.endTurn();}
   },
 
   checkEnd(){
@@ -1106,6 +1105,12 @@ const Renderer={
       c.beginPath(); c.arc(px,py,16,0,7); c.fill();
     }
 
+    // job color ring (inside unit circle, above aura)
+    const jobRingColor=j==='领主'?'#fbbf24':j==='重甲'?'#9ca3af':j==='骑士'?'#60a5fa':'#f59e0b';
+    c.strokeStyle=jobRingColor; c.lineWidth=3; c.globalAlpha=0.6;
+    c.beginPath(); c.arc(px,py,14,0,7); c.stroke();
+    c.globalAlpha=1;
+
     // border
     c.strokeStyle=u.done?'#374151':(u.isPlayer?'#3b82f6':'#ef4444'); c.lineWidth=2;
     c.beginPath(); c.arc(px,py,16,0,7); c.stroke(); c.shadowBlur=0;
@@ -1121,6 +1126,12 @@ const Renderer={
     c.strokeStyle='rgba(255,255,255,.1)'; c.lineWidth=0.5;
     c.strokeRect(px-12,py+21,24,4);
 
+    // acted marker (triangle below HP bar)
+    if(u.done){
+      c.fillStyle='#374151';
+      c.beginPath(); c.moveTo(px,py+29); c.lineTo(px-4,py+33); c.lineTo(px+4,py+33); c.closePath(); c.fill();
+    }
+
     c.restore();
   },
   _drawUnitIcon(c,u,px,py){
@@ -1130,43 +1141,43 @@ const Renderer={
     c.lineWidth=1.5; c.lineCap='round'; c.lineJoin='round';
 
     if(j==='领主'||j==='剑士'){
-      // shield
-      c.fillStyle=base; c.strokeStyle=acc; c.lineWidth=1;
+      // shield (scaled up ~30%)
+      c.fillStyle=base; c.strokeStyle=acc; c.lineWidth=1.2;
       c.beginPath();
-      c.moveTo(px-7,py-8); c.lineTo(px+7,py-8);
-      c.lineTo(px+7,py+2); c.lineTo(px,py+10); c.lineTo(px-7,py+2);
+      c.moveTo(px-9,py-10); c.lineTo(px+9,py-10);
+      c.lineTo(px+9,py+3); c.lineTo(px,py+13); c.lineTo(px-9,py+3);
       c.closePath(); c.fill(); c.stroke();
-      c.strokeStyle=acc; c.lineWidth=1;
-      c.beginPath(); c.moveTo(px,py-5); c.lineTo(px,py+6); c.stroke();
-      c.beginPath(); c.moveTo(px-4,py); c.lineTo(px+4,py); c.stroke();
+      c.strokeStyle=acc; c.lineWidth=1.2;
+      c.beginPath(); c.moveTo(px,py-6); c.lineTo(px,py+8); c.stroke();
+      c.beginPath(); c.moveTo(px-5,py); c.lineTo(px+5,py); c.stroke();
     } else if(j==='重甲'){
-      // armor circle
+      // armor circle (scaled up)
       c.fillStyle='#4b5563'; c.strokeStyle=base; c.lineWidth=2;
-      c.beginPath(); c.arc(px,py,12,0,7); c.fill(); c.stroke();
+      c.beginPath(); c.arc(px,py,15,0,7); c.fill(); c.stroke();
       // axe
-      c.strokeStyle=acc; c.lineWidth=2;
-      c.beginPath(); c.moveTo(px,py-9); c.lineTo(px,py+9); c.stroke();
+      c.strokeStyle=acc; c.lineWidth=2.5;
+      c.beginPath(); c.moveTo(px,py-11); c.lineTo(px,py+11); c.stroke();
       c.fillStyle=acc;
-      c.beginPath(); c.moveTo(px-8,py-6); c.lineTo(px,py-1); c.lineTo(px+8,py-6); c.closePath(); c.fill();
+      c.beginPath(); c.moveTo(px-10,py-7); c.lineTo(px,py-1); c.lineTo(px+10,py-7); c.closePath(); c.fill();
     } else if(j==='骑士'){
-      // triangle
-      c.fillStyle=base; c.strokeStyle=acc; c.lineWidth=1;
-      c.beginPath(); c.moveTo(px,py-11); c.lineTo(px+11,py+9); c.lineTo(px-11,py+9); c.closePath(); c.fill(); c.stroke();
+      // triangle (scaled up)
+      c.fillStyle=base; c.strokeStyle=acc; c.lineWidth=1.2;
+      c.beginPath(); c.moveTo(px,py-14); c.lineTo(px+14,py+11); c.lineTo(px-14,py+11); c.closePath(); c.fill(); c.stroke();
       // lance
-      c.strokeStyle=acc; c.lineWidth=1.5;
-      c.beginPath(); c.moveTo(px,py-14); c.lineTo(px,py+6); c.stroke();
+      c.strokeStyle=acc; c.lineWidth=1.8;
+      c.beginPath(); c.moveTo(px,py-18); c.lineTo(px,py+7); c.stroke();
       c.fillStyle=acc;
-      c.beginPath(); c.moveTo(px-3,py-14); c.lineTo(px,py-20); c.lineTo(px+3,py-14); c.closePath(); c.fill();
+      c.beginPath(); c.moveTo(px-4,py-18); c.lineTo(px,py-26); c.lineTo(px+4,py-18); c.closePath(); c.fill();
     } else if(j==='弓手'){
-      // diamond
-      c.fillStyle=base; c.strokeStyle=acc; c.lineWidth=1;
-      c.beginPath(); c.moveTo(px,py-12); c.lineTo(px+9,py); c.lineTo(px,py+12); c.lineTo(px-9,py); c.closePath(); c.fill(); c.stroke();
+      // diamond (scaled up)
+      c.fillStyle=base; c.strokeStyle=acc; c.lineWidth=1.2;
+      c.beginPath(); c.moveTo(px,py-15); c.lineTo(px+11,py); c.lineTo(px,py+15); c.lineTo(px-11,py); c.closePath(); c.fill(); c.stroke();
       // bow arc
-      c.strokeStyle=acc; c.lineWidth=1.5;
-      c.beginPath(); c.arc(px,py,7,-Math.PI*0.7,-Math.PI*0.3); c.stroke();
+      c.strokeStyle=acc; c.lineWidth=1.8;
+      c.beginPath(); c.arc(px,py,9,-Math.PI*0.7,-Math.PI*0.3); c.stroke();
       c.beginPath();
-      c.moveTo(px+7*Math.cos(-Math.PI*0.7),py+7*Math.sin(-Math.PI*0.7));
-      c.lineTo(px+7*Math.cos(-Math.PI*0.3),py+7*Math.sin(-Math.PI*0.3)); c.stroke();
+      c.moveTo(px+9*Math.cos(-Math.PI*0.7),py+9*Math.sin(-Math.PI*0.7));
+      c.lineTo(px+9*Math.cos(-Math.PI*0.3),py+9*Math.sin(-Math.PI*0.3)); c.stroke();
     }
   },
   floaters(){
