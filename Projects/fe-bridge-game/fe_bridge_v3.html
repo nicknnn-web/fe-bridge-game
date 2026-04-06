@@ -864,8 +864,8 @@ const game={
   checkEnd(){
     const p=this.units.filter(u=>u.isPlayer&&!u.dead);
     const e=this.units.filter(u=>!u.isPlayer&&!u.dead);
-    if(e.length===0){this.phase='win'; this.showEnd('🏆 胜利','所有敌军已被击溃');}
-    else if(p.length===0){this.phase='lose'; this.showEnd('💀 败北','我方全灭');}
+    if(e.length===0){this.phase='win'; this.showEnd('🏆 胜利','边境矿脉得以保全');}
+    else if(p.length===0){this.phase='lose'; this.showEnd('💀 败北','矿区落入红狼之手');}
   },
 
   showEnd(t,s){
