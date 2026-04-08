@@ -895,6 +895,7 @@ const game={
     document.getElementById('endTurnBtn').disabled=false;
     Log.clear();
     Log.add('<span class="system">⚔ 战斗开始</span>');
+    Renderer.showBanner('第 1 回合',false,2000);
   },
 
   onClick(e){
@@ -961,7 +962,7 @@ const game={
     this.busy=true; at.acted=true; at.attackScale=1.5; df.attackScale=1.5;
     const r=dmg(at,df);
     const finalDmg=r.c ? r.v*2 : r.v;
-    Renderer.addFloater(df.x,df.y,finalDmg,r.c);
+    Renderer.addFloater(df.x,df.y,finalDmg,r.c,r.c);
     Renderer.addParticles(df.x,df.y,r.c?'#fbbf24':'#ef4444',r.c?8:4);
     df.flash=5; df.hp=Math.max(0,df.hp-finalDmg);
     Log.add(`<span class="attacker">${at.nm}</span> 攻击 <span class="defender">${df.nm}</span> <span class="damage">-${finalDmg}</span>${r.c?' <span class="crit">💥</span>':''}`);
@@ -970,7 +971,7 @@ const game={
       if(canCt){
         const rc=dmg(df,at);
         const rcDmg=rc.c ? rc.v*2 : rc.v;
-        Renderer.addFloater(at.x,at.y,rcDmg,rc.c);
+        Renderer.addFloater(at.x,at.y,rcDmg,rc.c,rc.c);
         Renderer.addParticles(at.x,at.y,'#fff',3);
         at.flash=5; at.attackScale=1.5; at.hp=Math.max(0,at.hp-rcDmg);
         Log.add(`<span class="defender">${df.nm}</span> 反击 <span class="damage">-${rcDmg}</span>${rc.c?' <span class="crit">💥</span>':''}`);
@@ -1035,6 +1036,7 @@ const game={
     UI.updateTurn('敌方行动...',true);
     document.getElementById('endTurnBtn').disabled=true;
     Log.add('<span class="turn-marker">══ 敌方回合 ══</span>');
+    Renderer.showBanner('敌方回合',true,1500);
     setTimeout(()=>this.runAI(),600);
   },
 
@@ -1090,7 +1092,7 @@ const game={
     at.acted=true; at.attackScale=1.5; df.attackScale=1.5;
     const r=dmg(at,df);
     const finalDmg=r.c ? r.v*2 : r.v;
-    Renderer.addFloater(df.x,df.y,finalDmg,r.c);
+    Renderer.addFloater(df.x,df.y,finalDmg,r.c,r.c);
     Renderer.addParticles(df.x,df.y,r.c?'#fbbf24':'#ef4444',r.c?8:4);
     df.flash=5; df.hp=Math.max(0,df.hp-finalDmg);
     Log.add(`<span class="defender">${at.nm}</span> 攻击 <span class="attacker">${df.nm}</span> <span class="damage">-${finalDmg}</span>${r.c?' <span class="crit">💥</span>':''}`);
@@ -1100,7 +1102,7 @@ const game={
       if(canCt){
         const rc=dmg(df,at);
         const rcFinalDmg=rc.c ? rc.v*2 : rc.v;
-        Renderer.addFloater(at.x,at.y,rcFinalDmg,rc.c);
+        Renderer.addFloater(at.x,at.y,rcFinalDmg,rc.c,rc.c);
         Renderer.addParticles(at.x,at.y,'#fff',3);
         at.flash=5; at.attackScale=1.5; at.hp=Math.max(0,at.hp-rcFinalDmg);
         Log.add(`<span class="attacker">${df.nm}</span> 反击 <span class="defender">${at.nm}</span> <span class="damage">-${rcFinalDmg}</span>${rc.c?' <span class="crit">💥</span>':''}`);
@@ -1118,6 +1120,7 @@ const game={
     UI.updateTurn(`第 ${this.turn} 回合`,false);
     document.getElementById('endTurnBtn').disabled=false;
     Log.add('<span class="turn-marker">— 第 '+this.turn+' 回合 —</span>');
+    Renderer.showBanner('第 '+this.turn+' 回合',false,2000);
   },
 
   unitAt(x,y){return this.units.find(u=>!u.dead&&u.x===x&&u.y===y)||null},
@@ -1132,6 +1135,7 @@ const game={
     this.units.forEach(u=>{u.tick(); Renderer.unit(u,this.sel===u,t,this.atkTargets.includes(u));});
     Renderer.particles();
     Renderer.floaters();
+    Renderer.banner();
     this.units.forEach(u=>{
       if(u.flash>0) u.flash-=this.speed;
       if(u.attackScale>1){u.attackScale=Math.max(1,u.attackScale-0.05*this.speed);}
@@ -1145,7 +1149,7 @@ const game={
 // ================================================================
 const Renderer={
   canvas:null, ctx:null,
-  _ps:[], _ft:[],
+  _ps:[], _ft:[], _banner:null,
   spriteSheet:null, spriteReady:false,
   // Sprite 索引映射 (32x32 per sprite, 512x96 sheet: 16列x3行)
   // 地形(行0) | 蓝队单位(行1) | 红队单位(行2)
@@ -1181,8 +1185,9 @@ const Renderer={
     // 纯色底（统一深色）
     c.fillStyle='#1a1c22';
     c.fillRect(0,0,this.canvas.width,this.canvas.height);
-    // 网格线
-    c.strokeStyle='rgba(255,255,255,.015)'; c.lineWidth=1;
+    // 网格线（呼吸动画：透明度随时间微微波动）
+    const breath=0.012+Math.sin(t*0.8)*0.006;
+    c.strokeStyle=`rgba(255,255,255,${breath})`; c.lineWidth=1;
     for(let y=0;y<=12;y++){ c.beginPath(); c.moveTo(0,y*TS); c.lineTo(528,y*TS); c.stroke(); }
     for(let x=0;x<=12;x++){ c.beginPath(); c.moveTo(x*TS,0); c.lineTo(x*TS,528); c.stroke(); }
     // Sprite 图标（充满 44x44 格子）
@@ -1274,12 +1279,17 @@ const Renderer={
     // hit flash
     if(u.flash>0){c.fillStyle=`rgba(255,255,255,${u.flash*0.15})`;c.beginPath();c.arc(px,py,20,0,7);c.fill();}
 
-    // breathing selection border
+    // breathing selection border + particle emission
     if(sel){
       const pulse=0.5+Math.sin(t*4)*0.5;
       c.strokeStyle=`rgba(251,191,36,${pulse})`; c.lineWidth=3;
       c.beginPath(); c.arc(px,py,20,0,7); c.stroke();
       c.shadowColor='#fbbf24'; c.shadowBlur=15;
+      // 单位选中粒子特效：每隔几帧发射金色粒子
+      if(!this._selEmit||t-this._selEmit>0.08){
+        this._selEmit=t;
+        for(let i=0;i<2;i++) this._ps.push({x:px+(Math.random()-.5)*24,y:py+(Math.random()-.5)*24,vx:(Math.random()-.5)*1.5,vy:-Math.random()*1.5,life:20+Math.random()*10,c:'#fbbf24',s:Math.random()*2+1});
+      }
     }
 
     // attack target flashing border (orange pulse)
@@ -1330,7 +1340,13 @@ const Renderer={
     // HP bar (thicker)
     const hp=u.hp/u.mhp;
     c.fillStyle='#1f2937'; c.fillRect(px-12,py+21,24,4);
-    c.fillStyle=hp>0.5?'#22c55e':hp>0.25?'#eab308':'#ef4444';
+    // HP条颜色渐变（绿→黄→红，平滑过渡）
+    const lerp=(a,b,t)=>t<0.5?a+(b-a)*(t*2):b+(a-b)*((1-t)*2);
+    const hpColor=hp>0.5?`rgb(${Math.round(lerp(234,226,hp*2-1))},${Math.round(lerp(197,179,(hp-0.5)*2))},${Math.round(lerp(94,52,(hp-0.5)*2))})`:
+      hp>0.25?`rgb(${Math.round(lerp(234,239,68))},${Math.round(lerp(179,68,(hp)*4))},${Math.round(lerp(52,52,0))})`:
+      hp>0?`rgb(${Math.round(lerp(239,239,(hp-0.25)*4))},${Math.round(lerp(68,68,0))},${Math.round(lerp(52,68,(hp)*4))})`:
+      '#ef4444';
+    c.fillStyle=hpColor;
     c.fillRect(px-12,py+21,24*hp,4);
     c.strokeStyle='rgba(255,255,255,.1)'; c.lineWidth=0.5;
     c.strokeRect(px-12,py+21,24,4);
@@ -1392,17 +1408,24 @@ const Renderer={
   floaters(){
     this._ft=this._ft.filter(f=>{
       f.y+=f.vy; f.vy*=0.92; f.life--;
+      if(f.bounce>0){
+        const progress=(f.ml-f.life)/f.ml;
+        f.bounce=Math.sin(progress*Math.PI);
+      }
       const a=f.life/f.ml;
+      const scale=f.crit?(1+f.bounce*0.5):1;
       this.ctx.save(); this.ctx.globalAlpha=a;
-      this.ctx.font=(f.c?'bold 14px':'bold 11px')+' sans-serif';
+      this.ctx.font=(f.c?'bold 14px':f.crit?'bold 18px':'bold 11px')+' sans-serif';
       this.ctx.textAlign='center';
-      this.ctx.fillStyle='#000'; this.ctx.fillText((f.c?'💥 ':'')+'-'+f.v,f.x+1,f.y+1);
-      this.ctx.fillStyle=f.c?'#fbbf24':'#fff'; this.ctx.fillText((f.c?'💥 ':'')+'-'+f.v,f.x,f.y);
+      const bx=f.bx, by=f.by+(f.bounce>0?(1-progress)*8:0);
+      this.ctx.fillStyle='#000'; this.ctx.fillText((f.c?'💥 ':'')+'-'+f.v,bx+1,by+1);
+      this.ctx.fillStyle=f.c?'#fbbf24':f.crit?'#fbbf24':'#fff';
+      this.ctx.fillText((f.c?'💥 ':'')+'-'+f.v,bx,by);
       this.ctx.restore();
       return f.life>0;
     });
   },
-  addFloater(x,y,v,c){ this._ft.push({x:x*TS+22,y:y*TS+22,vy:-2.5,v,c,life:40,ml:40}); },
+  addFloater(x,y,v,c,crit){ this._ft.push({x:x*TS+22,y:y*TS+22,vy:-2.5,v,c,crit:!!crit,life:40,ml:40,bounce:crit?1:0,bx:x*TS+22,by:y*TS+22}); },
   particles(){
     this._ps=this._ps.filter(p=>{
       p.x+=p.vx; p.y+=p.vy; p.vy+=0.15; p.life--;
@@ -1413,6 +1436,33 @@ const Renderer={
     });
   },
   addParticles(x,y,col,ct){ for(let i=0;i<ct;i++) this._ps.push({x:x*TS+22,y:y*TS+22,vx:(Math.random()-.5)*5,vy:(Math.random()-.5)*5,life:25+Math.random()*10,c:col,s:Math.random()*2.5+.5}); },
+  banner(){
+    if(!this._banner) return;
+    const b=this._banner, c=this.ctx;
+    const age=b.ml-b.life;
+    // fade in 10%, hold 60%, fade out 30%
+    const fadeIn=Math.min(1,age/10);
+    const fadeOut=Math.max(0,(b.life)/(b.ml*0.3));
+    const alpha=fadeIn*fadeOut;
+    if(alpha<=0){this._banner=null; return;}
+    const scale=0.8+fadeIn*0.2;
+    c.save();
+    c.globalAlpha=alpha;
+    c.font=`bold 20px "Press Start 2P",monospace`;
+    c.textAlign='center';
+    const tx=264, ty=180;
+    c.translate(tx,ty); c.scale(scale,scale); c.translate(-tx,-ty);
+    c.fillStyle='rgba(0,0,0,.6)';
+    c.fillRect(tx-120,ty-18,240,36);
+    c.strokeStyle=b.enemy?'#ef4444':'#3b82f6'; c.lineWidth=2;
+    c.strokeRect(tx-120,ty-18,240,36);
+    c.fillStyle='#fff'; c.fillText(b.text,tx,ty+7);
+    c.restore();
+    b.life--;
+  },
+  showBanner(text,enemy,ms){
+    this._banner={text,enemy,life:Math.round((ms||2000)/16.67),ml:Math.round((ms||2000)/16.67)};
+  },
 };
 
 game.init();
