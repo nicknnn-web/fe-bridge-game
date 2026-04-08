@@ -83,6 +83,9 @@ body{
   color:var(--gold);
   background:var(--bg-panel);
 }
+#speedBtn.active{border-color:var(--gold);color:var(--gold);background:var(--bg-panel)}
+#speedBtn.speed-mid{color:#60a5fa}
+#speedBtn.speed-slow{color:#f87171}
 
 /* ===== 主布局 ===== */
 .main-layout{
@@ -1016,10 +1019,13 @@ const game={
 
   toggleSpeed(){
     const speeds=[1,0.25,0.1];
-    const labels=['1x','0.25x','0.1x'];
+    const labels=['1x ⚡','0.25x ⏩','0.1x ⏸'];
     const i=speeds.indexOf(this.speed);
-    this.speed=speeds[(i+1)%speeds.length];
-    document.getElementById('speedBtn').textContent=labels[(i+1)%labels.length];
+    const ni=(i+1)%speeds.length;
+    this.speed=speeds[ni];
+    const btn=document.getElementById('speedBtn');
+    btn.textContent=labels[ni];
+    btn.className='header-btn'+(ni===1?' speed-mid':ni===2?' speed-slow':'')+(ni!==0?' active':'');
   },
 
   endTurn(){
