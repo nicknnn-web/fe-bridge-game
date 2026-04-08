@@ -801,6 +801,7 @@ const UI={
     const w=u.wp, hp=Math.round(u.hp/u.mhp*100);
     const hpClass=hp>50?'high':hp>25?'med':'low';
     const faces={'p1':'🧑‍🎤','p2':'🛡️','p3':'🏇','p4':'🏹','e1':'🧙','e2':'⚔️','e3':'🗡️','e4':'🎯'};
+    const defStr=u.terrainBonus?`${u.df}<span style="font-size:9px;color:var(--green)">(+${u.terrainBonus})</span>`:u.df;
     el.innerHTML=`
       <div class="unit-header">
         <div class="unit-face">${faces[u.id]||'?'}</div>
@@ -811,23 +812,23 @@ const UI={
         <div class="weapon-badge ${u.wkClass}">${w.i} ${w.n}</div>
       </div>
       <div class="unit-hp-section">
-        <div class="hp-label"><span>HP</span><span>${u.hp} / ${u.mhp}</span></div>
+        <div class="hp-label"><span>❤️ HP</span><span>${u.hp} / ${u.mhp}</span></div>
         <div class="hp-bar-bg"><div class="hp-bar-fill ${hpClass}" style="width:${hp}%"></div></div>
       </div>
       <div class="unit-stats">
-        <div class="stat-box"><div class="stat-value">${u.ak}</div><div class="stat-label">攻击</div></div>
-        <div class="stat-box"><div class="stat-value">${u.df}${u.terrainBonus?'+'+u.terrainBonus:''}</div><div class="stat-label">防御</div></div>
-        <div class="stat-box"><div class="stat-value">${u.mv}</div><div class="stat-label">移动</div></div>
-        <div class="stat-box"><div class="stat-value">${u.sp}</div><div class="stat-label">速度</div></div>
-        <div class="stat-box"><div class="stat-value">${w.r}</div><div class="stat-label">射程</div></div>
-        <div class="stat-box"><div class="stat-value" style="font-size:12px">${u.mhp}</div><div class="stat-label">最大HP</div></div>
+        <div class="stat-box"><div class="stat-value">⚔ ${u.ak}</div><div class="stat-label">攻击</div></div>
+        <div class="stat-box"><div class="stat-value">🛡 ${defStr}</div><div class="stat-label">防御</div></div>
+        <div class="stat-box"><div class="stat-value">👟 ${u.mv}</div><div class="stat-label">移动</div></div>
+        <div class="stat-box"><div class="stat-value">💨 ${u.sp}</div><div class="stat-label">速度</div></div>
+        <div class="stat-box"><div class="stat-value">🎯 ${w.r}</div><div class="stat-label">射程</div></div>
+        <div class="stat-box"><div class="stat-value" style="font-size:12px">❤️ ${u.mhp}</div><div class="stat-label">最大HP</div></div>
       </div>
       <div class="terrain-info">
         所在地形：<span class="terrain-name">${this.getTerrainName(u)}</span>
         ${u.terrainBonus?'<span class="terrain-bonus">防御 +'+u.terrainBonus+'</span>':''}
       </div>
       <div class="unit-status">
-        <span class="${u.done?'status-done':'status-ready'}">${u.done?'已行动':'待命中'}</span>
+        <span class="${u.done?'status-done':'status-ready'}">${u.done?'● 已行动':'● 待命中'}</span>
       </div>
       ${u.isPlayer&&u.moved&&!u.acted&&typeof game!=='undefined'&&game.atkTargets&&game.atkTargets.length>0?'<button class="skip-btn" onclick="game.skipAction()">跳过本轮攻击</button>':''}
     `;
