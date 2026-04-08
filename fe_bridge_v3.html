@@ -852,6 +852,7 @@ const game={
   phase:'idle', turn:1, units:[],
   sel:null, mvRange:[], atkTargets:[], busy:false, speed:1,
   floaters:[], particles:[],
+  _hovered:null, _lastHover:0,
 
   init(){
     this.setupUnits();
@@ -877,6 +878,9 @@ const game={
     document.getElementById('startBtn').onclick=()=>this.start();
     document.getElementById('endTurnBtn').onclick=()=>this.endTurn();
     document.getElementById('canvas').onclick=e=>this.onClick(e);
+    const canvas=document.getElementById('canvas');
+    canvas.addEventListener('mousemove',e=>this.onHover(e));
+    canvas.addEventListener('mouseleave',()=>this.onHoverEnd());
   },
 
   start(){
@@ -898,6 +902,24 @@ const game={
     const gy=Math.floor((e.clientY-r.top)*sy/TS);
     if(gx<0||gx>=12||gy<0||gy>=12) return;
     this.click(gx,gy);
+  },
+
+  onHover(e){
+    const now=performance.now();
+    if(now-this._lastHover<80) return;
+    this._lastHover=now;
+    const r=document.getElementById('canvas').getBoundingClientRect();
+    const sx=528/r.width, sy=528/r.height;
+    const gx=Math.floor((e.clientX-r.left)*sx/TS);
+    const gy=Math.floor((e.clientY-r.top)*sy/TS);
+    if(gx<0||gx>=12||gy<0||gy>=12){ this._hovered=null; return; }
+    this._hovered=[gx,gy];
+    const u=this.unitAt(gx,gy);
+    if(!u||u.dead) UI.showTerrain(gx,gy);
+  },
+
+  onHoverEnd(){
+    this._hovered=null;
   },
 
   click(gx,gy){
@@ -1094,6 +1116,7 @@ const game={
     Renderer.map(t);
     if(this.mvRange.length) Renderer.mvRange(this.mvRange);
     if(this.atkTargets.length) Renderer.atkRange(this.atkTargets);
+    if(this._hovered) Renderer.hoverTile(this._hovered[0],this._hovered[1],t);
     this.units.forEach(u=>{u.tick(); Renderer.unit(u,this.sel===u,t,this.atkTargets.includes(u));});
     Renderer.particles();
     Renderer.floaters();
@@ -1177,6 +1200,12 @@ const Renderer={
     const c=this.ctx;
     c.fillStyle='rgba(59,130,246,.15)'; c.strokeStyle='rgba(59,130,246,.50)';
     tiles.forEach(([x,y])=>{c.fillRect(x*TS+3,y*TS+3,TS-6,TS-6);c.strokeRect(x*TS+3,y*TS+3,TS-6,TS-6);});
+  },
+  hoverTile(x,y,t){
+    const c=this.ctx;
+    const pulse=0.5+Math.sin(t*4)*0.5;
+    c.strokeStyle=`rgba(251,191,36,${pulse})`; c.lineWidth=2;
+    c.strokeRect(x*TS+2,y*TS+2,TS-4,TS-4);
   },
   atkRange(units){
     const c=this.ctx;
