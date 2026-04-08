@@ -181,6 +181,8 @@ body{
 .log-entry .death{color:#e05050}
 .log-entry .system{color:var(--text-muted)}
 .log-entry .turn-marker{color:var(--gold);font-family:'Press Start 2P',monospace;font-size:7px}
+.log-fold-btn{font-size:11px;color:var(--gold);cursor:pointer;padding:6px 0;text-align:center;background:var(--bg-dark);border:1px solid var(--border-panel);margin-top:4px;border-radius:2px}
+.log-fold-btn:hover{color:var(--gold-dim);background:var(--bg-panel)}
 
 /* ===== 棋盘区域 ===== */
 .board-area{
@@ -679,19 +681,49 @@ function atkRange(u){
 // ================================================================
 const Log={
   entries:[],
+  _folded:true,
+  _limit:20,
   add(html){
     this.entries.push(html);
     if(this.entries.length>100) this.entries.shift();
+    this._render();
+  },
+  _render(){
     const el=document.getElementById('logScroll');
-    const div=document.createElement('div');
-    div.className='log-entry';
-    div.innerHTML=html;
-    el.appendChild(div);
+    el.innerHTML='';
+    const show=this._folded&&this.entries.length>this._limit
+      ? this.entries.slice(-this._limit)
+      : this.entries.slice();
+    show.forEach(h=>{
+      const div=document.createElement('div');
+      div.className='log-entry';
+      div.innerHTML=h;
+      el.appendChild(div);
+    });
+    if(this._folded&&this.entries.length>this._limit){
+      const btn=document.createElement('div');
+      btn.className='log-fold-btn';
+      btn.textContent=`🔽 查看更多历史（${this.entries.length-this._limit}条）`;
+      btn.onclick=()=>this.toggle();
+      el.appendChild(btn);
+    } else if(this._folded&&this.entries.length<=this._limit){
+      // collapsed but not over limit — nothing extra
+    } else if(!this._folded&&this.entries.length>this._limit){
+      const btn=document.createElement('div');
+      btn.className='log-fold-btn';
+      btn.textContent='🔼 收起';
+      btn.onclick=()=>this.toggle();
+      el.appendChild(btn);
+    }
     el.scrollTop=9999;
     document.getElementById('logCount').textContent=this.entries.length+' 条';
   },
+  toggle(){
+    this._folded=!this._folded;
+    this._render();
+  },
   clear(){
-    this.entries=[];
+    this.entries=[]; this._folded=true;
     document.getElementById('logScroll').innerHTML='';
     document.getElementById('logCount').textContent='0 条';
   }
